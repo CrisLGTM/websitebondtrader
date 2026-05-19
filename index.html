@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BondTrader | Tokenized Bond Trading Infrastructure</title>
+<meta name="description" content="BondTrader helps brokers, fintech partners, and investors access tokenized bond markets, fixed-income yield, and collateral-based lending through one clear platform." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B1220;
+    --bg-elev: #0F1A2E;
+    --surface: #131F36;
+    --surface-2: #182843;
+    --border: #1F3151;
+    --border-soft: #1A2A47;
+    --text: #E6ECF5;
+    --text-muted: #94A3B8;
+    --text-dim: #64748B;
+    --accent: #14B8A6;
+    --accent-soft: rgba(20, 184, 166, 0.12);
+    --accent-border: rgba(20, 184, 166, 0.32);
+    --positive: #34D399;
+    --warning: #F59E0B;
+    --radius: 12px;
+    --radius-lg: 16px;
+    --radius-sm: 8px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow: 0 8px 24px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.4);
+    --shadow-lg: 0 24px 60px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.4);
+    --display: 'Fraunces', Georgia, serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  /* Subtle ambient background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(1000px 600px at 80% -10%, rgba(20, 184, 166, 0.06), transparent 60%),
+      radial-gradient(800px 500px at 0% 10%, rgba(59, 130, 246, 0.04), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 28px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ============ HEADER ============ */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(11, 18, 32, 0.75);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 68px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .brand-mark {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    background: linear-gradient(135deg, var(--accent), #0EA5A0);
+    display: grid;
+    place-items: center;
+    box-shadow: 0 0 0 1px rgba(20,184,166,0.25), inset 0 1px 0 rgba(255,255,255,0.15);
+    position: relative;
+  }
+  .brand-mark::after {
+    content: '';
+    width: 10px; height: 10px;
+    border: 1.5px solid rgba(255,255,255,0.92);
+    border-radius: 2px;
+    transform: rotate(45deg);
+  }
+  .brand strong { font-weight: 600; }
+  .brand em { font-style: normal; color: var(--text-muted); font-weight: 400; }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .nav a {
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    transition: color .15s ease, background .15s ease;
+  }
+  .nav a:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+
+  .header-cta { display: flex; align-items: center; gap: 10px; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 14px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    line-height: 1;
+    transition: all .18s ease;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #06221F;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.15) inset, 0 6px 18px rgba(20,184,166,0.28);
+  }
+  .btn-primary:hover { background: #0FA89B; transform: translateY(-1px); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border-color: var(--border);
+  }
+  .btn-secondary:hover { border-color: #2A4067; background: rgba(255,255,255,0.02); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-muted);
+    padding: 10px 14px;
+  }
+  .btn-ghost:hover { color: var(--text); }
+  .btn-lg { padding: 14px 22px; font-size: 15px; }
+
+  .menu-toggle {
+    display: none;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    color: var(--text);
+    align-items: center;
+    justify-content: center;
+  }
+  .menu-toggle svg { width: 18px; height: 18px; }
+
+  .mobile-menu {
+    display: none;
+    padding: 16px 28px 24px;
+    border-top: 1px solid var(--border-soft);
+    background: var(--bg);
+  }
+  .mobile-menu.open { display: block; }
+  .mobile-menu a {
+    display: block;
+    padding: 12px 4px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .mobile-menu a:last-of-type { border-bottom: none; }
+  .mobile-menu .btn { width: 100%; margin-top: 14px; }
+
+  /* ============ SECTIONS ============ */
+  section { padding: 96px 0; position: relative; z-index: 1; }
+  .section-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding: 6px 12px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-border);
+    border-radius: 999px;
+    margin-bottom: 20px;
+  }
+  .section-eyebrow::before {
+    content: '';
+    width: 5px; height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent);
+  }
+  h1, h2, h3 { font-family: var(--display); font-weight: 400; letter-spacing: -0.02em; line-height: 1.1; }
+  h1 { font-size: clamp(40px, 5.5vw, 64px); }
+  h2 { font-size: clamp(30px, 3.6vw, 44px); margin-bottom: 16px; }
+  h3 { font-size: 20px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.3; }
+  .lede { font-size: 17px; color: var(--text-muted); max-width: 640px; line-height: 1.6; }
+  .section-head { margin-bottom: 56px; }
+  .section-head.center { text-align: center; margin-left: auto; margin-right: auto; }
+  .section-head.center .lede { margin-left: auto; margin-right: auto; }
+
+  /* ============ HERO ============ */
+  .hero { padding: 80px 0 100px; }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 64px;
+    align-items: center;
+  }
+  .hero h1 {
+    margin-bottom: 24px;
+    color: var(--text);
+  }
+  .hero h1 .accent {
+    font-style: italic;
+    color: var(--accent);
+    font-weight: 300;
+  }
+  .hero p.lede { margin-bottom: 32px; font-size: 18px; }
+  .hero-ctas {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .trust-line {
+    font-size: 13px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .trust-line::before {
+    content: '';
+    width: 24px; height: 1px;
+    background: var(--border);
+  }
+
+  /* ============ DASHBOARD MOCKUP ============ */
+  .dashboard {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    box-shadow: var(--shadow-lg);
+  }
+  .dashboard::before {
+    content: 'Illustrative data';
+    position: absolute;
+    top: -10px;
+    right: 18px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+  }
+  .dash-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px 14px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .dash-title {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .dash-title strong { color: var(--text); font-weight: 600; }
+  .dash-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--positive);
+  }
+  .dash-status .dot {
+    width: 6px; height: 6px;
+    background: var(--positive);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--positive);
+  }
+
+  .bond-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 14px;
+    font-size: 13px;
+  }
+  .bond-table th {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 500;
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .bond-table th:nth-child(n+2) { text-align: right; }
+  .bond-table td {
+    padding: 13px 8px;
+    border-bottom: 1px solid var(--border-soft);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--text);
+  }
+  .bond-table td:nth-child(n+2) { text-align: right; }
+  .bond-table tr:last-child td { border-bottom: none; }
+  .bond-table .asset { display: flex; align-items: center; gap: 10px; font-family: var(--sans); font-weight: 600; }
+  .asset-tag {
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    display: grid; place-items: center;
+    font-size: 9px;
+    font-family: var(--mono);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .ytm-pos { color: var(--positive); }
+
+  .dash-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .mini-card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 14px;
+  }
+  .mini-card h4 {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+  .mini-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 6px 0;
+    font-size: 12.5px;
+  }
+  .mini-row + .mini-row { border-top: 1px solid var(--border-soft); }
+  .mini-row span:first-child { color: var(--text-muted); }
+  .mini-row span:last-child { font-family: var(--mono); color: var(--text); font-weight: 500; }
+  .mini-row .big {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+  }
+
+  /* Floating accent on dashboard */
+  .dashboard-glow {
+    position: absolute;
+    inset: -30px -20px;
+    z-index: -1;
+    background: radial-gradient(60% 50% at 50% 50%, rgba(20,184,166,0.15), transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ============ TRUST STRIP ============ */
+  .trust-strip {
+    padding: 48px 0;
+    border-top: 1px solid var(--border-soft);
+    border-bottom: 1px solid var(--border-soft);
+    background: rgba(15, 26, 46, 0.5);
+  }
+  .trust-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 24px;
+    border-right: 1px solid var(--border-soft);
+  }
+  .trust-item:last-child { border-right: none; }
+  .trust-item:first-child { padding-left: 0; }
+  .trust-icon {
+    width: 36px; height: 36px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-border);
+    border-radius: 8px;
+    display: grid; place-items: center;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .trust-icon svg { width: 18px; height: 18px; }
+  .trust-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  /* ============ PROBLEM CARDS ============ */
+  .card-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    transition: border-color .2s ease, transform .2s ease;
+  }
+  .card:hover {
+    border-color: var(--border);
+    transform: translateY(-2px);
+  }
+  .card .num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+  }
+  .card h3 { margin-bottom: 10px; }
+  .card p { color: var(--text-muted); font-size: 14.5px; line-height: 1.6; }
+  .card-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-border);
+    color: var(--accent);
+    display: grid; place-items: center;
+    margin-bottom: 20px;
+  }
+  .card-icon svg { width: 20px; height: 20px; }
+
+  /* ============ HOW IT WORKS ============ */
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    position: relative;
+  }
+  .how-step {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 32px 28px;
+    position: relative;
+  }
+  .step-num {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--bg);
+    background: var(--accent);
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    margin-bottom: 20px;
+  }
+
+  /* ============ FOR BROKERS ============ */
+  .broker {
+    background: linear-gradient(180deg, var(--bg-elev), var(--bg));
+    border-top: 1px solid var(--border-soft);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .broker-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: center;
+  }
+  .broker-bullets {
+    list-style: none;
+    margin: 28px 0;
+  }
+  .broker-bullets li {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 0;
+    font-size: 15px;
+    color: var(--text);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .broker-bullets li:last-child { border-bottom: none; }
+  .check {
+    width: 22px; height: 22px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-border);
+    color: var(--accent);
+    display: grid; place-items: center;
+    margin-top: 1px;
+  }
+  .check svg { width: 12px; height: 12px; }
+
+  .workflow {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 36px 28px;
+    box-shadow: var(--shadow);
+  }
+  .workflow-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 28px;
+    text-align: center;
+  }
+  .workflow-row {
+    display: grid;
+    grid-template-columns: 1fr 24px 1fr 24px 1fr;
+    gap: 12px;
+    align-items: center;
+  }
+  .workflow-node {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 14px;
+    text-align: center;
+  }
+  .workflow-node.center {
+    background: var(--accent-soft);
+    border-color: var(--accent-border);
+  }
+  .workflow-node strong {
+    display: block;
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .workflow-node span {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    letter-spacing: 0.05em;
+  }
+  .workflow-node.center strong { color: var(--accent); }
+  .workflow-arrow {
+    color: var(--text-dim);
+    text-align: center;
+    font-family: var(--mono);
+  }
+
+  /* ============ INVESTOR ============ */
+  .mini-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .mini-info-card {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 22px;
+  }
+  .mini-info-card h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .mini-info-card h4 .ico {
+    width: 22px; height: 22px;
+    color: var(--accent);
+  }
+  .mini-info-card p {
+    color: var(--text-muted);
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+
+  /* ============ PLATFORM PREVIEW ============ */
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .preview-card {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .preview-mock {
+    padding: 20px;
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--border-soft);
+    min-height: 200px;
+  }
+  .preview-body {
+    padding: 22px;
+  }
+  .preview-body h3 { margin-bottom: 8px; }
+  .preview-body p { color: var(--text-muted); font-size: 14px; }
+
+  /* Markets preview */
+  .pm-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 0;
+    font-size: 12px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .pm-row:last-child { border-bottom: none; }
+  .pm-row .name { font-weight: 600; color: var(--text); }
+  .pm-row .meta { font-family: var(--mono); color: var(--text-muted); font-size: 11px; }
+  .pm-row .ytm { font-family: var(--mono); color: var(--positive); font-weight: 500; }
+
+  /* Yield preview - simple bar viz */
+  .yield-rows { display: flex; flex-direction: column; gap: 14px; padding-top: 4px; }
+  .yield-row { display: flex; flex-direction: column; gap: 6px; }
+  .yield-label { display: flex; justify-content: space-between; font-size: 11.5px; }
+  .yield-label .l { color: var(--text); font-weight: 500; }
+  .yield-label .v { color: var(--accent); font-family: var(--mono); }
+  .yield-bar {
+    height: 6px;
+    background: var(--surface-2);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .yield-bar > div {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #5EEAD4);
+    border-radius: 999px;
+  }
+
+  /* Portfolio preview */
+  .pf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pf-tile {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .pf-tile .l { font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; font-family: var(--mono); margin-bottom: 6px; }
+  .pf-tile .v { font-family: var(--mono); font-size: 14px; color: var(--text); font-weight: 600; }
+  .pf-bar {
+    grid-column: 1 / -1;
+    height: 5px;
+    background: var(--surface);
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+  }
+  .pf-bar > div { height: 100%; width: 38%; background: var(--accent); }
+
+  /* ============ FINAL CTA ============ */
+  .final-cta {
+    background: linear-gradient(180deg, var(--bg), var(--bg-elev));
+    border-top: 1px solid var(--border-soft);
+  }
+  .final-cta-inner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 64px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .final-cta-inner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(600px 300px at 50% 0%, rgba(20,184,166,0.10), transparent 60%),
+      radial-gradient(400px 200px at 90% 100%, rgba(20,184,166,0.06), transparent 60%);
+    pointer-events: none;
+  }
+  .final-cta-inner > * { position: relative; }
+  .final-cta h2 { margin-bottom: 16px; }
+  .final-cta .lede { margin: 0 auto 32px; }
+  .final-cta-ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  /* ============ FOOTER ============ */
+  footer {
+    padding: 56px 0 36px;
+    border-top: 1px solid var(--border-soft);
+    background: var(--bg);
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 48px;
+    margin-bottom: 40px;
+  }
+  .footer-about p {
+    color: var(--text-muted);
+    font-size: 13.5px;
+    max-width: 360px;
+    margin-top: 16px;
+    line-height: 1.6;
+  }
+  .footer-col h5 {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+  .footer-col ul { list-style: none; }
+  .footer-col li { margin-bottom: 10px; }
+  .footer-col a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color .15s ease;
+  }
+  .footer-col a:hover { color: var(--text); }
+  .footer-bottom {
+    padding-top: 28px;
+    border-top: 1px solid var(--border-soft);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .disclaimer {
+    font-size: 12px;
+    color: var(--text-dim);
+    max-width: 720px;
+    line-height: 1.6;
+  }
+  .copyright {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+  }
+
+  /* ============ MODAL ============ */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 10, 20, 0.7);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    animation: fade .2s ease;
+  }
+  .modal-overlay.open { display: flex; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    max-width: 520px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    animation: slide .25s ease;
+  }
+  @keyframes slide { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-head {
+    padding: 24px 28px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .modal-head h3 { font-size: 24px; margin-bottom: 6px; }
+  .modal-head p { font-size: 14px; color: var(--text-muted); margin-bottom: 0; }
+  .modal-close {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-body { padding: 24px 28px 28px; }
+  .form-row { margin-bottom: 16px; }
+  .form-row.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-row.two > div { margin-bottom: 0; }
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    font-family: var(--mono);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  input, select, textarea {
+    width: 100%;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 11px 14px;
+    border-radius: 8px;
+    font-family: var(--sans);
+    font-size: 14px;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: var(--bg);
+  }
+  textarea { resize: vertical; min-height: 90px; }
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+    padding-right: 36px;
+  }
+  .form-submit {
+    width: 100%;
+    margin-top: 8px;
+    padding: 13px;
+    font-size: 14.5px;
+  }
+  .form-success {
+    text-align: center;
+    padding: 24px 0;
+  }
+  .form-success .ok {
+    width: 56px; height: 56px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-border);
+    color: var(--accent);
+    display: grid; place-items: center;
+  }
+  .form-success h4 {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .form-success p { color: var(--text-muted); font-size: 14px; }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 960px) {
+    .nav, .header-cta .btn-ghost { display: none; }
+    .header-cta .btn-secondary { display: none; }
+    .menu-toggle { display: inline-flex; }
+    .hero-grid, .broker-grid { grid-template-columns: 1fr; gap: 48px; }
+    .card-grid-3, .how-grid, .preview-grid, .mini-cards { grid-template-columns: 1fr; }
+    .trust-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
+    .trust-item { padding: 0 !important; border-right: none; }
+    .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+    .workflow-row { grid-template-columns: 1fr; }
+    .workflow-arrow { transform: rotate(90deg); padding: 4px 0; }
+    section { padding: 72px 0; }
+    .final-cta-inner { padding: 48px 28px; }
+  }
+  @media (max-width: 640px) {
+    .container { padding: 0 20px; }
+    .hero { padding: 56px 0 72px; }
+    .form-row.two { grid-template-columns: 1fr; gap: 16px; }
+    .form-row.two > div { margin-bottom: 0; }
+    .bond-table th:nth-child(4),
+    .bond-table td:nth-child(4),
+    .bond-table th:nth-child(5),
+    .bond-table td:nth-child(5) { display: none; }
+    .dash-cards { grid-template-columns: 1fr; }
+    .footer-bottom { flex-direction: column; }
+  }
+
+  /* Skip nice animations on reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+
+  /* Reveal on load */
+  .reveal { opacity: 0; transform: translateY(12px); animation: revealIn .7s ease forwards; }
+  .reveal.d1 { animation-delay: .05s; }
+  .reveal.d2 { animation-delay: .15s; }
+  .reveal.d3 { animation-delay: .25s; }
+  .reveal.d4 { animation-delay: .35s; }
+  @keyframes revealIn { to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="header">
+  <div class="container header-inner">
+    <a href="#top" class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span><strong>Bond</strong><em>Trader</em></span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a href="#product">Product</a>
+      <a href="#yield">Yield</a>
+      <a href="#brokers">For Brokers</a>
+      <a href="#platform">Platform</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <div class="header-cta">
+      <button class="btn btn-ghost" onclick="openModal('waitlist')">Join Waitlist</button>
+      <button class="btn btn-primary" onclick="openModal('access')">Request Access</button>
+      <button class="menu-toggle" id="menuToggle" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#product" onclick="closeMobileMenu()">Product</a>
+    <a href="#yield" onclick="closeMobileMenu()">Yield</a>
+    <a href="#brokers" onclick="closeMobileMenu()">For Brokers</a>
+    <a href="#platform" onclick="closeMobileMenu()">Platform</a>
+    <a href="#contact" onclick="closeMobileMenu()">Contact</a>
+    <button class="btn btn-secondary" onclick="closeMobileMenu(); openModal('waitlist')">Join Waitlist</button>
+    <button class="btn btn-primary" onclick="closeMobileMenu(); openModal('access')">Request Access</button>
+  </div>
+</header>
+
+<a id="top"></a>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="reveal d1">
+        <span class="section-eyebrow">Fixed-Income Infrastructure</span>
+        <h1>Tokenized bond trading <span class="accent">infrastructure</span> for brokers and digital investors</h1>
+        <p class="lede">BondTrader helps partners and users access tokenized bond markets, fixed-income yield, and collateral-based lending through one clear platform.</p>
+        <div class="hero-ctas">
+          <button class="btn btn-primary btn-lg" onclick="openModal('access')">
+            Request Access
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+          <button class="btn btn-secondary btn-lg" onclick="openModal('waitlist')">Join Waitlist</button>
+        </div>
+        <div class="trust-line">Built for brokers, fintech partners, yield managers, and serious fixed-income users.</div>
+      </div>
+
+      <div class="reveal d2" style="position: relative;">
+        <div class="dashboard-glow"></div>
+        <div class="dashboard" id="product">
+          <div class="dash-bar">
+            <div class="dash-title">Markets · <strong>Tokenized Corporate Bonds</strong></div>
+            <div class="dash-status"><span class="dot"></span>Live</div>
+          </div>
+          <table class="bond-table">
+            <thead>
+              <tr>
+                <th>Asset</th>
+                <th>Price</th>
+                <th>YTM</th>
+                <th>Maturity</th>
+                <th>Coupon</th>
+                <th>Liquidity</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="asset"><span class="asset-tag">AMZ</span>AMZN 2030</div></td>
+                <td>99.42</td>
+                <td class="ytm-pos">5.18%</td>
+                <td>2030</td>
+                <td>4.75%</td>
+                <td>$2.4M</td>
+              </tr>
+              <tr>
+                <td><div class="asset"><span class="asset-tag">NVD</span>NVDA 2032</div></td>
+                <td>101.08</td>
+                <td class="ytm-pos">4.92%</td>
+                <td>2032</td>
+                <td>5.00%</td>
+                <td>$1.8M</td>
+              </tr>
+              <tr>
+                <td><div class="asset"><span class="asset-tag">GOG</span>GOOGL 2029</div></td>
+                <td>98.76</td>
+                <td class="ytm-pos">5.34%</td>
+                <td>2029</td>
+                <td>4.50%</td>
+                <td>$3.1M</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="dash-cards" id="yield">
+            <div class="mini-card">
+              <h4>Fixed-Income Yield</h4>
+              <div class="mini-row">
+                <span></span>
+                <span class="big">5.24%</span>
+              </div>
+              <div class="mini-row"><span>Utilization</span><span>68.4%</span></div>
+              <div class="mini-row"><span>Available Liquidity</span><span>$4.2M</span></div>
+            </div>
+            <div class="mini-card">
+              <h4>Portfolio</h4>
+              <div class="mini-row"><span>Bond Exposure</span><span>$125,000</span></div>
+              <div class="mini-row"><span>Collateral Used</span><span>$48,000</span></div>
+              <div class="mini-row"><span>Earned Yield</span><span style="color: var(--positive)">+$1,284</span></div>
+              <div class="mini-row"><span>Borrow Limit</span><span>$62,500</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TRUST STRIP ============ -->
+<div class="trust-strip">
+  <div class="container">
+    <div class="trust-grid">
+      <div class="trust-item">
+        <div class="trust-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M8 14h3"/></svg>
+        </div>
+        <div class="trust-text">Tokenized Bonds</div>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        </div>
+        <div class="trust-text">Fixed-Income Yield</div>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div class="trust-text">Collateral-Based Lending</div>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="trust-text">Broker-Ready Infrastructure</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PROBLEM ============ -->
+<section>
+  <div class="container">
+    <div class="section-head" style="max-width: 720px;">
+      <span class="section-eyebrow">The Challenge</span>
+      <h2>Bond markets are still difficult to access digitally</h2>
+      <p class="lede">Traditional fixed-income markets are fragmented, hard to compare, and difficult to integrate into modern financial products. BondTrader brings trading, yield, and collateral tools into one clearer interface.</p>
+    </div>
+    <div class="card-grid-3">
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        </div>
+        <h3>Limited digital access</h3>
+        <p>Many bond products are still difficult to access without specialized brokerage infrastructure or large minimums.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M21 21H4.6a.6.6 0 0 1-.6-.6V3"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+        </div>
+        <h3>Poor yield transparency</h3>
+        <p>Users often struggle to compare price, yield-to-maturity, coupon, maturity, and liquidity in one place.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M9 6h6a3 3 0 0 1 3 3v6"/></svg>
+        </div>
+        <h3>Disconnected workflows</h3>
+        <p>Trading, lending, borrowing, and portfolio tracking are usually handled across separate systems.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PRODUCT CARDS ============ -->
+<section style="padding-top: 24px;">
+  <div class="container">
+    <div class="section-head" style="max-width: 720px;">
+      <span class="section-eyebrow">Product</span>
+      <h2>One platform for tokenized bond trading and yield access</h2>
+    </div>
+    <div class="card-grid-3">
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
+        </div>
+        <h3>Trade Tokenized Bonds</h3>
+        <p>Access tokenized bond markets with price, maturity, coupon, liquidity, and YTM visibility.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        </div>
+        <h3>Access Fixed-Income Yield</h3>
+        <p>View and compare yield opportunities with utilization, available liquidity, and asset-level data.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>
+        </div>
+        <h3>Borrow Against Bond Assets</h3>
+        <p>Use supported bond assets as collateral with clear borrowing limits and risk visibility.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section>
+  <div class="container">
+    <div class="section-head" style="max-width: 720px;">
+      <span class="section-eyebrow">How It Works</span>
+      <h2>A simpler fixed-income workflow</h2>
+    </div>
+    <div class="how-grid">
+      <div class="how-step">
+        <div class="step-num">1</div>
+        <h3>Request access</h3>
+        <p style="color: var(--text-muted); font-size: 14.5px; margin-top: 10px; line-height: 1.6;">Partners and early users can onboard through a simple access flow.</p>
+      </div>
+      <div class="how-step">
+        <div class="step-num">2</div>
+        <h3>Compare markets</h3>
+        <p style="color: var(--text-muted); font-size: 14.5px; margin-top: 10px; line-height: 1.6;">Review tokenized bonds by yield, maturity, liquidity, coupon, and collateral availability.</p>
+      </div>
+      <div class="how-step">
+        <div class="step-num">3</div>
+        <h3>Trade, lend, or borrow</h3>
+        <p style="color: var(--text-muted); font-size: 14.5px; margin-top: 10px; line-height: 1.6;">Manage fixed-income activity from one platform.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOR BROKERS ============ -->
+<section class="broker" id="brokers">
+  <div class="container">
+    <div class="broker-grid">
+      <div>
+        <span class="section-eyebrow">For Partners</span>
+        <h2>Built for brokers, fintechs, and distribution partners</h2>
+        <p class="lede">BondTrader helps partners offer tokenized bond trading, yield access, and collateral-based lending without building the full infrastructure from scratch.</p>
+        <ul class="broker-bullets">
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Launch tokenized bond access faster</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Offer clearer yield and maturity data</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Add lending and collateral workflows</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Support modern fixed-income products</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Give users a cleaner bond trading experience</li>
+        </ul>
+        <button class="btn btn-primary btn-lg" onclick="openModal('access', 'Broker / Partner')">
+          Request Partner Access
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+
+      <div class="workflow">
+        <div class="workflow-title">Integration Workflow</div>
+        <div class="workflow-row">
+          <div class="workflow-node">
+            <strong>Partner Platform</strong>
+            <span>Distribution</span>
+          </div>
+          <div class="workflow-arrow">→</div>
+          <div class="workflow-node center">
+            <strong>BondTrader</strong>
+            <span>Infrastructure</span>
+          </div>
+          <div class="workflow-arrow">→</div>
+          <div class="workflow-node">
+            <strong>End Users</strong>
+            <span>Trading · Yield</span>
+          </div>
+        </div>
+        <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border-soft); display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; text-align: center;">
+          <div>
+            <div style="font-family: var(--display); font-size: 24px; color: var(--accent); margin-bottom: 4px;">API</div>
+            <div style="font-size: 11px; color: var(--text-dim); font-family: var(--mono); letter-spacing: 0.05em;">Integration</div>
+          </div>
+          <div>
+            <div style="font-family: var(--display); font-size: 24px; color: var(--accent); margin-bottom: 4px;">SDK</div>
+            <div style="font-size: 11px; color: var(--text-dim); font-family: var(--mono); letter-spacing: 0.05em;">Client Tools</div>
+          </div>
+          <div>
+            <div style="font-family: var(--display); font-size: 24px; color: var(--accent); margin-bottom: 4px;">UI</div>
+            <div style="font-size: 11px; color: var(--text-dim); font-family: var(--mono); letter-spacing: 0.05em;">Components</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOR INVESTORS ============ -->
+<section>
+  <div class="container">
+    <div class="section-head" style="max-width: 720px;">
+      <span class="section-eyebrow">For Investors</span>
+      <h2>Clearer bond data before every decision</h2>
+      <p class="lede">Compare yield, maturity, price, liquidity, and collateral rules before trading, lending, or borrowing.</p>
+    </div>
+    <div class="mini-cards">
+      <div class="mini-info-card">
+        <h4>
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
+          Compare Yield
+        </h4>
+        <p>YTM, coupon, lending yield, and maturity in one place.</p>
+      </div>
+      <div class="mini-info-card">
+        <h4>
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Understand Risk
+        </h4>
+        <p>Collateral limits, utilization, liquidity, and exposure shown clearly.</p>
+      </div>
+      <div class="mini-info-card">
+        <h4>
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Manage Activity
+        </h4>
+        <p>Track positions, balances, borrowing, and earned yield from one dashboard.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PLATFORM PREVIEW ============ -->
+<section id="platform">
+  <div class="container">
+    <div class="section-head" style="max-width: 720px;">
+      <span class="section-eyebrow">Platform Preview</span>
+      <h2>Designed for modern bond workflows</h2>
+    </div>
+    <div class="preview-grid">
+      <!-- Markets -->
+      <div class="preview-card">
+        <div class="preview-mock">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em;">MARKETS</div>
+            <div style="font-family: var(--mono); font-size: 10px; color: var(--accent);">● 12 ACTIVE</div>
+          </div>
+          <div class="pm-row">
+            <div><div class="name">AMZN 2030</div><div class="meta">4.75% · Mat 2030</div></div>
+            <div class="ytm">5.18%</div>
+          </div>
+          <div class="pm-row">
+            <div><div class="name">NVDA 2032</div><div class="meta">5.00% · Mat 2032</div></div>
+            <div class="ytm">4.92%</div>
+          </div>
+          <div class="pm-row">
+            <div><div class="name">GOOGL 2029</div><div class="meta">4.50% · Mat 2029</div></div>
+            <div class="ytm">5.34%</div>
+          </div>
+          <div class="pm-row">
+            <div><div class="name">MSFT 2031</div><div class="meta">4.65% · Mat 2031</div></div>
+            <div class="ytm">5.07%</div>
+          </div>
+        </div>
+        <div class="preview-body">
+          <h3>Markets</h3>
+          <p>Browse tokenized bonds by issuer, maturity, price, YTM, and liquidity.</p>
+        </div>
+      </div>
+
+      <!-- Yield -->
+      <div class="preview-card">
+        <div class="preview-mock">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div style="font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em;">YIELD POOLS</div>
+            <div style="font-family: var(--mono); font-size: 10px; color: var(--text-dim);">UTILIZATION</div>
+          </div>
+          <div class="yield-rows">
+            <div class="yield-row">
+              <div class="yield-label"><span class="l">AMZN Pool</span><span class="v">5.18%</span></div>
+              <div class="yield-bar"><div style="width: 72%"></div></div>
+            </div>
+            <div class="yield-row">
+              <div class="yield-label"><span class="l">NVDA Pool</span><span class="v">4.92%</span></div>
+              <div class="yield-bar"><div style="width: 54%"></div></div>
+            </div>
+            <div class="yield-row">
+              <div class="yield-label"><span class="l">GOOGL Pool</span><span class="v">5.34%</span></div>
+              <div class="yield-bar"><div style="width: 81%"></div></div>
+            </div>
+            <div class="yield-row">
+              <div class="yield-label"><span class="l">MSFT Pool</span><span class="v">5.07%</span></div>
+              <div class="yield-bar"><div style="width: 63%"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="preview-body">
+          <h3>Yield</h3>
+          <p>Compare fixed-income yield opportunities and monitor utilization.</p>
+        </div>
+      </div>
+
+      <!-- Portfolio -->
+      <div class="preview-card">
+        <div class="preview-mock">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div style="font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em;">PORTFOLIO</div>
+            <div style="font-family: var(--mono); font-size: 10px; color: var(--positive);">+1.03%</div>
+          </div>
+          <div style="font-family: var(--display); font-size: 28px; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 4px;">$125,000</div>
+          <div style="font-size: 11px; color: var(--text-dim); font-family: var(--mono); margin-bottom: 16px;">TOTAL BOND EXPOSURE</div>
+          <div class="pf-grid">
+            <div class="pf-tile"><div class="l">Collateral</div><div class="v">$48,000</div></div>
+            <div class="pf-tile"><div class="l">Earned</div><div class="v" style="color: var(--positive)">+$1,284</div></div>
+            <div class="pf-bar"><div></div></div>
+          </div>
+          <div style="font-size: 10px; color: var(--text-dim); margin-top: 6px; font-family: var(--mono); letter-spacing: 0.05em;">COLLATERAL USAGE · 38% of limit</div>
+        </div>
+        <div class="preview-body">
+          <h3>Portfolio</h3>
+          <p>Track balances, positions, collateral exposure, and earned yield.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FINAL CTA ============ -->
+<section class="final-cta" id="contact">
+  <div class="container">
+    <div class="final-cta-inner">
+      <span class="section-eyebrow">Get Started</span>
+      <h2>Bring tokenized bond access to your platform</h2>
+      <p class="lede">BondTrader is opening access for brokers, fintech partners, and early users interested in modern fixed-income markets.</p>
+      <div class="final-cta-ctas">
+        <button class="btn btn-primary btn-lg" onclick="openModal('access')">
+          Request Access
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+        <button class="... (8 KB left)
