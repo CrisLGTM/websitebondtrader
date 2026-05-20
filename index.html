@@ -892,6 +892,23 @@
     padding: 13px;
     font-size: 14.5px;
   }
+  .form-submit:disabled {
+    cursor: wait;
+    opacity: 0.72;
+    transform: none;
+  }
+  .form-message {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 12px;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-radius: 8px;
+    background: rgba(245, 158, 11, 0.08);
+    color: var(--warning);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .form-message.show { display: block; }
   .form-success {
     text-align: center;
     padding: 24px 0;
@@ -1497,7 +1514,8 @@
           <label for="message">Message</label>
           <textarea id="message" name="message" placeholder="Anything specific you'd like to discuss?"></textarea>
         </div>
-        <button type="submit" class="btn btn-primary form-submit">Submit</button>
+        <button type="submit" class="btn btn-primary form-submit" id="submitButton">Submit</button>
+        <div class="form-message" id="formMessage" role="alert"></div>
       </form>
       <div class="form-success" id="formSuccess" style="display: none;">
         <div class="ok">
@@ -1524,6 +1542,8 @@
   const interestSelect = document.getElementById('interest');
   const form = document.getElementById('leadForm');
   const formSuccess = document.getElementById('formSuccess');
+  const formMessage = document.getElementById('formMessage');
+  const submitButton = document.getElementById('submitButton');
   const companyWrap = document.getElementById('companyWrap');
   const roleWrap = document.getElementById('roleWrap');
   const messageWrap = document.getElementById('messageWrap');
@@ -1531,6 +1551,10 @@
   function openModal(type, presetInterest) {
     form.style.display = '';
     formSuccess.style.display = 'none';
+    formMessage.classList.remove('show');
+    formMessage.textContent = '';
+    submitButton.disabled = false;
+    submitButton.textContent = 'Submit';
     form.reset();
 
     if (type === 'waitlist') {
@@ -1565,14 +1589,35 @@
     if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
   });
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    // In production, post to your endpoint here.
     const data = Object.fromEntries(new FormData(form));
-    console.log('Lead submission:', data);
-    form.style.display = 'none';
-    formSuccess.style.display = 'block';
-    setTimeout(() => closeModal(), 2400);
+    formMessage.classList.remove('show');
+    formMessage.textContent = '';
+    submitButton.disabled = true;
+    submitButton.textContent = 'Sending...';
+
+    try {
+      const response = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Could not submit your request.');
+      }
+
+      form.style.display = 'none';
+      formSuccess.style.display = 'block';
+      setTimeout(() => closeModal(), 2400);
+    } catch (error) {
+      formMessage.textContent = error.message || 'Could not submit your request.';
+      formMessage.classList.add('show');
+      submitButton.disabled = false;
+      submitButton.textContent = 'Submit';
+    }
   }
 </script>
 
