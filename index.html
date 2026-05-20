@@ -1098,7 +1098,7 @@
         <div class="dashboard-glow"></div>
         <div class="dashboard" id="product">
           <div class="dash-bar">
-            <div class="dash-title">Markets · <strong>Tokenized Corporate Bonds</strong></div>
+            <div class="dash-title">Markets · <strong>Live Treasury Benchmarks</strong></div>
             <div class="dash-status"><span class="dot"></span>Live</div>
           </div>
           <table class="bond-table">
@@ -1114,25 +1114,25 @@
             </thead>
             <tbody>
               <tr>
-                <td><div class="asset"><span class="asset-tag">AMZ</span>AMZN 2030</div></td>
+                <td><div class="asset"><span class="asset-tag">BIL</span><span data-rate-security="0">Treasury Bills</span></div></td>
                 <td>99.42</td>
-                <td class="ytm-pos">5.18%</td>
+                <td class="ytm-pos" data-rate-value="0">--</td>
                 <td>2030</td>
                 <td>4.75%</td>
                 <td>$2.4M</td>
               </tr>
               <tr>
-                <td><div class="asset"><span class="asset-tag">NVD</span>NVDA 2032</div></td>
+                <td><div class="asset"><span class="asset-tag">NTE</span><span data-rate-security="1">Treasury Notes</span></div></td>
                 <td>101.08</td>
-                <td class="ytm-pos">4.92%</td>
+                <td class="ytm-pos" data-rate-value="1">--</td>
                 <td>2032</td>
                 <td>5.00%</td>
                 <td>$1.8M</td>
               </tr>
               <tr>
-                <td><div class="asset"><span class="asset-tag">GOG</span>GOOGL 2029</div></td>
+                <td><div class="asset"><span class="asset-tag">BND</span><span data-rate-security="2">Treasury Bonds</span></div></td>
                 <td>98.76</td>
-                <td class="ytm-pos">5.34%</td>
+                <td class="ytm-pos" data-rate-value="2">--</td>
                 <td>2029</td>
                 <td>4.50%</td>
                 <td>$3.1M</td>
@@ -1143,11 +1143,11 @@
             <div class="mini-card">
               <h4>Fixed-Income Yield</h4>
               <div class="mini-row">
-                <span></span>
-                <span class="big">5.24%</span>
+                <span id="heroRateLabel">Treasury benchmark</span>
+                <span class="big" id="heroRateValue">--</span>
               </div>
-              <div class="mini-row"><span>Utilization</span><span>68.4%</span></div>
-              <div class="mini-row"><span>Available Liquidity</span><span>$4.2M</span></div>
+              <div class="mini-row"><span>Record Date</span><span id="heroRateDate">Loading</span></div>
+              <div class="mini-row"><span>Source</span><span>Fiscal Data</span></div>
             </div>
             <div class="mini-card">
               <h4>Portfolio</h4>
@@ -1642,6 +1642,9 @@
   const ratesMeta = document.getElementById('ratesMeta');
   const ratesError = document.getElementById('ratesError');
   const refreshRates = document.getElementById('refreshRates');
+  const heroRateLabel = document.getElementById('heroRateLabel');
+  const heroRateValue = document.getElementById('heroRateValue');
+  const heroRateDate = document.getElementById('heroRateDate');
 
   function openModal(type, presetInterest) {
     form.style.display = '';
@@ -1735,6 +1738,24 @@
     return tile;
   }
 
+  function updateHeroRates(data) {
+    const visibleRates = data.rates.slice(0, 3);
+    visibleRates.forEach((rate, index) => {
+      const security = document.querySelector(`[data-rate-security="${index}"]`);
+      const value = document.querySelector(`[data-rate-value="${index}"]`);
+
+      if (security) security.textContent = rate.security;
+      if (value) value.textContent = `${rate.rate.toFixed(2)}%`;
+    });
+
+    const benchmark = visibleRates[0];
+    if (benchmark) {
+      heroRateLabel.textContent = benchmark.security;
+      heroRateValue.textContent = `${benchmark.rate.toFixed(2)}%`;
+    }
+    heroRateDate.textContent = data.recordDate;
+  }
+
   async function loadTreasuryRates() {
     refreshRates.disabled = true;
     refreshRates.textContent = 'Refreshing...';
@@ -1751,10 +1772,12 @@
 
       ratesGrid.replaceChildren(...data.rates.slice(0, 4).map(renderRateTile));
       ratesMeta.textContent = `${data.source} · record date ${data.recordDate}`;
+      updateHeroRates(data);
     } catch (error) {
       ratesError.textContent = error.message || 'Could not load Treasury rates.';
       ratesError.classList.add('show');
       ratesMeta.textContent = 'Live data is temporarily unavailable.';
+      heroRateDate.textContent = 'Unavailable';
     } finally {
       refreshRates.disabled = false;
       refreshRates.textContent = 'Refresh';
