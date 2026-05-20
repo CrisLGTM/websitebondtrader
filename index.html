@@ -636,6 +636,72 @@
     line-height: 1.55;
   }
 
+  /* ============ LIVE RATES ============ */
+  .live-rates {
+    padding-top: 24px;
+  }
+  .live-rates-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+  }
+  .live-rates-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 22px;
+  }
+  .live-rates-head h2 {
+    margin-bottom: 8px;
+  }
+  .rates-meta {
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+  .rates-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .rate-tile {
+    background: var(--bg-elev);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 16px;
+    min-height: 116px;
+  }
+  .rate-tile .label {
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.35;
+    margin-bottom: 12px;
+  }
+  .rate-tile .value {
+    color: var(--accent);
+    font-family: var(--display);
+    font-size: 30px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .rate-tile .type {
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 10px;
+  }
+  .rates-error {
+    display: none;
+    color: var(--warning);
+    font-size: 13px;
+    margin-top: 14px;
+  }
+  .rates-error.show { display: block; }
+
   /* ============ PLATFORM PREVIEW ============ */
   .preview-grid {
     display: grid;
@@ -936,7 +1002,8 @@
     .header-cta .btn-secondary { display: none; }
     .menu-toggle { display: inline-flex; }
     .hero-grid, .broker-grid { grid-template-columns: 1fr; gap: 48px; }
-    .card-grid-3, .how-grid, .preview-grid, .mini-cards { grid-template-columns: 1fr; }
+    .card-grid-3, .how-grid, .preview-grid, .mini-cards, .rates-grid { grid-template-columns: 1fr; }
+    .live-rates-head { flex-direction: column; }
     .trust-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
     .trust-item { padding: 0 !important; border-right: none; }
     .footer-grid { grid-template-columns: 1fr; gap: 32px; }
@@ -1314,6 +1381,30 @@
   </div>
 </section>
 
+<!-- ============ LIVE RATES ============ -->
+<section class="live-rates" id="live-rates">
+  <div class="container">
+    <div class="live-rates-panel">
+      <div class="live-rates-head">
+        <div>
+          <span class="section-eyebrow">Live Data</span>
+          <h2>Current Treasury rate snapshot</h2>
+          <p class="rates-meta" id="ratesMeta">Loading public Treasury data...</p>
+        </div>
+        <button class="btn btn-secondary" id="refreshRates" type="button">Refresh</button>
+      </div>
+      <div class="rates-grid" id="ratesGrid" aria-live="polite">
+        <div class="rate-tile">
+          <div class="label">Loading rates</div>
+          <div class="value">--</div>
+          <div class="type">Treasury</div>
+        </div>
+      </div>
+      <p class="rates-error" id="ratesError"></p>
+    </div>
+  </div>
+</section>
+
 <!-- ============ PLATFORM PREVIEW ============ -->
 <section id="platform">
   <div class="container">
@@ -1547,6 +1638,10 @@
   const companyWrap = document.getElementById('companyWrap');
   const roleWrap = document.getElementById('roleWrap');
   const messageWrap = document.getElementById('messageWrap');
+  const ratesGrid = document.getElementById('ratesGrid');
+  const ratesMeta = document.getElementById('ratesMeta');
+  const ratesError = document.getElementById('ratesError');
+  const refreshRates = document.getElementById('refreshRates');
 
   function openModal(type, presetInterest) {
     form.style.display = '';
@@ -1619,6 +1714,55 @@
       submitButton.textContent = 'Submit';
     }
   }
+
+  function renderRateTile(rate) {
+    const tile = document.createElement('div');
+    tile.className = 'rate-tile';
+
+    const label = document.createElement('div');
+    label.className = 'label';
+    label.textContent = rate.security;
+
+    const value = document.createElement('div');
+    value.className = 'value';
+    value.textContent = `${rate.rate.toFixed(2)}%`;
+
+    const type = document.createElement('div');
+    type.className = 'type';
+    type.textContent = rate.type;
+
+    tile.append(label, value, type);
+    return tile;
+  }
+
+  async function loadTreasuryRates() {
+    refreshRates.disabled = true;
+    refreshRates.textContent = 'Refreshing...';
+    ratesError.classList.remove('show');
+    ratesError.textContent = '';
+
+    try {
+      const response = await fetch('/api/treasury-rates');
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Could not load Treasury rates.');
+      }
+
+      ratesGrid.replaceChildren(...data.rates.slice(0, 4).map(renderRateTile));
+      ratesMeta.textContent = `${data.source} · record date ${data.recordDate}`;
+    } catch (error) {
+      ratesError.textContent = error.message || 'Could not load Treasury rates.';
+      ratesError.classList.add('show');
+      ratesMeta.textContent = 'Live data is temporarily unavailable.';
+    } finally {
+      refreshRates.disabled = false;
+      refreshRates.textContent = 'Refresh';
+    }
+  }
+
+  refreshRates.addEventListener('click', loadTreasuryRates);
+  loadTreasuryRates();
 </script>
 
 </body>

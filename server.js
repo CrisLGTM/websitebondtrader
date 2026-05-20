@@ -7,6 +7,9 @@ const PORT = Number(process.env.PORT || 3000);
 const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, 'data');
 const LEADS_FILE = path.join(DATA_DIR, 'leads.json');
+const TREASURY_RATES_URL = 'https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates?fields=record_date,security_type_desc,security_desc,avg_interest_rate_amt&sort=-record_date&page[size]=12';
+const CACHE_TTL_MS = 10 * 60 * 1000;
+let treasuryRatesCache = null;
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -110,6 +113,49 @@ async function handleLead(req, res) {
   }
 }
 
+async function handleTreasuryRates(req, res) {
+  try {
+    const now = Date.now();
+    if (treasuryRatesCache && now - treasuryRatesCache.fetchedAt < CACHE_TTL_MS) {
+      return sendJson(res, 200, treasuryRatesCache.payload);
+    }
+
+    const response = await fetch(TREASURY_RATES_URL, {
+      headers: { Accept: 'application/json' }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Treasury API returned ${response.status}`);
+    }
+
+    const payload = await response.json();
+    const rates = (payload.data || []).map(item => ({
+      recordDate: item.record_date,
+      type: item.security_type_desc,
+      security: item.security_desc,
+      rate: Number(item.avg_interest_rate_amt)
+    })).filter(item => item.recordDate && item.security && Number.isFinite(item.rate));
+
+    if (!rates.length) {
+      throw new Error('Treasury API returned no rates');
+    }
+
+    const result = {
+      source: 'U.S. Treasury Fiscal Data',
+      sourceUrl: 'https://fiscaldata.treasury.gov/',
+      updatedAt: new Date().toISOString(),
+      recordDate: rates[0].recordDate,
+      rates
+    };
+
+    treasuryRatesCache = { fetchedAt: now, payload: result };
+    return sendJson(res, 200, result);
+  } catch (error) {
+    console.error(error);
+    return sendJson(res, 502, { error: 'Could not load Treasury rate data.' });
+  }
+}
+
 async function serveStatic(req, res) {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const pathname = decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname);
@@ -138,6 +184,10 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === 'POST' && req.url === '/api/leads') {
     return handleLead(req, res);
+  }
+
+  if (req.method === 'GET' && req.url === '/api/treasury-rates') {
+    return handleTreasuryRates(req, res);
   }
 
   if (req.method === 'GET' || req.method === 'HEAD') {
